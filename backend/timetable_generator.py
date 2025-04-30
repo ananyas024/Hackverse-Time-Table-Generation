@@ -3,9 +3,65 @@ import sys
 import random
 import copy
 import argparse
+import os
+import matplotlib.pyplot as plt
+import sqlite3
 
 DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 PERIODS_PER_DAY = 6
+
+def load_combined_input():
+    conn = sqlite3.connect('timetable.db')
+    cursor = conn.cursor()
+
+    # Fetch teachers' data
+    cursor.execute("SELECT id, name, subjectCode, subjectName, credits, isLab, sections FROM teachers")
+    teachers_data = cursor.fetchall()
+
+    # Fetch batches' data
+    cursor.execute("SELECT id, year, section, subjectCodes FROM batches")
+    batches_data = cursor.fetchall()
+
+    conn.close()
+
+    # Process the data into appropriate structures
+    teachers = []
+    for row in teachers_data:
+        teacher = {
+            'id': row[0],
+            'name': row[1],
+            'code': row[2],
+            'subject_name': row[3],
+            'credits': row[4],
+            'is_lab': bool(row[5]),
+            'sections': [s.strip() for s in row[6].split(',')],
+        }
+        teachers.append(teacher)
+
+    batches = []
+    for row in batches_data:
+        batch = {
+            'id': row[0],
+            'year': row[1],
+            'section': row[2],
+            'subject_codes': [s.strip() for s in row[3].split(',')],
+        }
+        batches.append(batch)
+
+    # Build subjects list for timetable generation
+    subjects = []
+    for teacher in teachers:
+        for section in teacher['sections']:
+            subjects.append({
+                'code': teacher['code'],
+                'subject_name': teacher['subject_name'],
+                'credits': teacher['credits'],
+                'is_lab': teacher['is_lab'],
+                'teacher_name': teacher['name'],
+                'sections': [section],
+            })
+
+    return {'teachers': teachers, 'batches': batches, 'subjects': subjects}
 
 class Timetable:
     def __init__(self, input_data, section_name):
@@ -24,14 +80,12 @@ class Timetable:
 
     def generate_random_timetable(self):
         timetable = {day: [None] * PERIODS_PER_DAY for day in DAYS}
-
         for subject in self.subjects:
             total_hours = subject["credits"]
             if subject["is_lab"]:
                 total_hours = 2  # lab block (2 periods)
             hours_assigned = 0
             attempts = 0
-
             while hours_assigned < total_hours and attempts < 100:
                 day = random.choice(DAYS)
                 if subject["is_lab"]:
@@ -66,12 +120,10 @@ class Timetable:
             fitness_scores.sort(key=lambda x: x[1], reverse=True)
             selected = [tt for tt, _ in fitness_scores[:4]]
             self.population = selected.copy()
-
             while len(self.population) < 10:
                 parent = random.choice(selected)
                 child = self.mutate(copy.deepcopy(parent))
                 self.population.append(child)
-
         return max(self.population, key=self.evaluate_fitness)
 
     def mutate(self, timetable):
@@ -86,52 +138,27 @@ class Timetable:
             timetable[day][period] = subject["code"]
         return timetable
 
-def load_combined_input():
-    try:
-        with open("input/teachers.json", 'r') as f:
-            teachers_data = json.load(f)
-        teachers = teachers_data.get("teachers", [])
+def save_timetable_as_image(timetable, section):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.axis('tight')
+    ax.axis('off')
 
-        with open("input/subjects.json", 'r') as f:
-            subjects_data = json.load(f)
+    table_data = [['Day'] + [f'P{i+1}' for i in range(PERIODS_PER_DAY)]]
+    for day in DAYS:
+        row = [day] + [timetable[day][i] if timetable[day][i] else "---" for i in range(PERIODS_PER_DAY)]
+        table_data.append(row)
 
-        subjects = []
-        if "data" in subjects_data and subjects_data["data"]:
-            subjects.extend(subjects_data["data"][0].get("subjects", []))
-        if "subjects" in subjects_data:
-            subjects.extend(subjects_data["subjects"])
+    table = ax.table(cellText=table_data, cellLoc='center', loc='center')
+    table.scale(1, 2)
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
 
-        batches = []
-        try:
-            with open("input/batches.json", 'r') as f:
-                batches_data = json.load(f)
-                batches = batches_data.get("batches", [])
-        except FileNotFoundError:
-            if "data" in subjects_data and subjects_data["data"]:
-                batches = subjects_data["data"][0].get("batches", [])
-
-        if not subjects:
-            raise ValueError("No subjects found")
-        if not teachers:
-            raise ValueError("No teachers found")
-
-        teacher_ids = {t["id"] for t in teachers}
-        for subject in subjects:
-            if subject["teacher_id"] not in teacher_ids:
-                print(f"⚠️ Warning: Teacher {subject['teacher_id']} not found for subject {subject['code']}")
-
-        return {
-            "teachers": teachers,
-            "subjects": subjects,
-            "batches": batches
-        }
-
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON decode error: {str(e)}")
-        sys.exit(1)
-    except FileNotFoundError as e:
-        print(f"❌ File not found: {str(e)}")
-        sys.exit(1)
+    output_dir = "output"
+    os.makedirs(output_dir, exist_ok=True)
+    filepath = os.path.join(output_dir, f"{section}_timetable.png")
+    plt.title(f"Timetable for Section {section}")
+    plt.savefig(filepath, bbox_inches='tight')
+    print(f"\n🖼️ Timetable image saved to: {filepath}")
 
 def print_timetable(best):
     print("\n✅ BEST TIMETABLE GENERATED:")
@@ -139,9 +166,6 @@ def print_timetable(best):
         print(f"\n📅 {day}:")
         for i, subject in enumerate(periods, 1):
             print(f"  Period {i}: {subject if subject else '---'}")
-    print("\n📊 SUMMARY:")
-    for day in best:
-        print(f"{day}: {best[day]}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -153,7 +177,11 @@ if __name__ == "__main__":
 
     print(f"🔧 Generating timetable for section: {args.section}")
     tt = Timetable(input_data, args.section)
+    if not tt.subjects:
+        print(f"❌ No subjects found for section '{args.section}'. Please check your teachers table.")
+        sys.exit(1)
     tt.create_initial_population()
     best = tt.run_evolution()
 
     print_timetable(best)
+    save_timetable_as_image(best, args.section)

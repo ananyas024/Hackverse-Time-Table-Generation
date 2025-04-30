@@ -37,120 +37,134 @@ db.run(`
   else console.log("Batches table is ready.");
 });
 
-// DROP and recreate the teachers table (FIX for sections column)
-db.serialize(() => {
-  db.run(`DROP TABLE IF EXISTS batches`, (err) => {
-    if (err) console.error("Error dropping batches table:", err);
-    else console.log("Old batches table dropped.");
-  });
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS batches (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      year INTEGER NOT NULL,
-      section TEXT NOT NULL,
-      subjectCodes TEXT NOT NULL
-    )
-  `, (err) => {
-    if (err) console.error("Batch table creation error:", err);
-    else console.log("Batches table is ready.");
-  });
+// Create teachers table
+db.run(`
+  CREATE TABLE IF NOT EXISTS teachers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    subjectCode TEXT NOT NULL,
+    subjectName TEXT NOT NULL,
+    credits INTEGER NOT NULL,
+    isLab INTEGER NOT NULL,  -- 1 for lab, 0 for regular
+    sections TEXT NOT NULL   -- Comma-separated list of sections
+  )
+`, (err) => {
+  if (err) console.error("Teachers table creation error:", err);
+  else console.log("Teachers table is ready.");
 });
 
-// POST /api/batches
+// POST /api/batches - Add a new batch
 app.post('/api/batches', (req, res) => {
   const { year, sections } = req.body;
-
-  if (!year || !Array.isArray(sections) || sections.length === 0) {
-    return res.status(400).json({ error: 'Year and sections are required.' });
+  if (!year || !sections || !Array.isArray(sections) || sections.length === 0) {
+    return res.status(400).json({ error: "Invalid batch data." });
   }
 
-  const insertStmt = db.prepare(`INSERT INTO batches (year, section, subjectCodes) VALUES (?, ?, ?)`);
-  let insertCount = 0;
+  // Only one section per request (as per your frontend)
+  const sectionObj = sections[0];
+  if (!sectionObj.name || !sectionObj.subjects || !Array.isArray(sectionObj.subjects) || sectionObj.subjects.length === 0) {
+    return res.status(400).json({ error: "Invalid section data." });
+  }
 
-  sections.forEach(({ name, subjects }) => {
-    if (!name || !Array.isArray(subjects)) return;
+  const section = sectionObj.name;
+  const subjectCodes = sectionObj.subjects.map(s => s.trim()).join(',');
 
-    const subjectCodes = subjects.join(',');
-
-    insertStmt.run([year, name, subjectCodes], function (err) {
+  db.run(
+    `INSERT INTO batches (year, section, subjectCodes) VALUES (?, ?, ?)`,
+    [year, section, subjectCodes],
+    function (err) {
       if (err) {
-        console.error("Error inserting batch:", err.message);
-        return res.status(500).json({ error: "Database error while inserting batch" });
+        console.error("DB insert error:", err);
+        return res.status(500).json({ error: "Failed to add batch." });
       }
-
-      insertCount++;
-      if (insertCount === sections.length) {
-        insertStmt.finalize(() => {
-          return res.status(200).json({ message: "Batch(es) added successfully" });
-        });
-      }
-    });
-  });
-});
-
-// GET /api/batches
-app.get('/api/batches', (req, res) => {
-  db.all("SELECT * FROM batches", (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: "Database query failed" });
-    } else {
-      res.status(200).json(rows);
+      return res.status(201).json({ message: "Batch added successfully!", batchId: this.lastID });
     }
-  });
+  );
 });
 
-// POST /api/teachers
-app.post('/api/teachers', (req, res) => {
-  const { teacherId, teacherName, subjectCode, subjectName, credits, isLab, sections } = req.body;
+// POST /api/generate-timetable
+app.post('/api/generate-timetable', (req, res) => {
+  const { className } = req.body;
 
-  if (!teacherId || !teacherName || !subjectCode || !subjectName || credits == null || !sections) {
-    return res.status(400).json({ error: 'Missing required teacher fields.' });
+  if (!className) {
+    return res.status(400).json({ error: 'Class name is required.' });
   }
 
-  const isLabInt = isLab ? 1 : 0;
+  // Fetch the batch for the given section
+  db.get(
+    `SELECT * FROM batches WHERE section = ?`,
+    [className],
+    (err, batchRow) => {
+      if (err) {
+        return res.status(500).json({ error: "Database query failed" });
+      }
+      if (!batchRow) {
+        return res.status(404).json({ error: "Batch not found for this section." });
+      }
 
-  const insertStmt = `
-    INSERT INTO teachers (id, name, subjectCode, subjectName, credits, isLab, sections)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
+      // Get subject codes for this batch
+      const subjectCodes = batchRow.subjectCodes.split(',').map(s => s.trim());
 
-  db.run(insertStmt, [teacherId, teacherName, subjectCode, subjectName, credits, isLabInt, sections], function(err) {
-    if (err) {
-      console.error("Failed to insert teacher:", err.message);
-      return res.status(500).json({ error: 'Failed to insert teacher.' });
+      // Fetch teachers for these subject codes
+      db.all(
+        `SELECT * FROM teachers WHERE subjectCode IN (${subjectCodes.map(() => '?').join(',')})`,
+        subjectCodes,
+        (err, teacherRows) => {
+          if (err) {
+            return res.status(500).json({ error: "Database query failed" });
+          }
+
+          // Build subjects array for timetable generation
+          const subjects = teacherRows.map(row => ({
+            subject_name: row.subjectName,
+            teacher_name: row.name,
+            is_lab: !!row.isLab,
+            credits: row.credits,
+            subject_code: row.subjectCode,
+          }));
+
+          // Generate timetable
+          const timetable = generateTimetable(subjects);
+
+          return res.status(200).json({ timetable });
+        }
+      );
     }
-    res.status(200).json({ message: 'Teacher added successfully.' });
-  });
+  );
 });
 
-app.get('/api/teachers', (req, res) => {
-  db.all("SELECT * FROM teachers", (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: "Database query failed" });
-    } else {
-      res.status(200).json(rows);
+// Helper function to generate timetable based on subjects
+const generateTimetable = (subjects) => {
+  const timetable = { 'Mon': [], 'Tue': [], 'Wed': [], 'Thu': [], 'Fri': [] };
+  const days = Object.keys(timetable);
+  const periodsPerDay = 6;
+
+  subjects.forEach(subject => {
+    let hoursAssigned = 0;
+    while (hoursAssigned < subject.credits) {
+      const day = days[Math.floor(Math.random() * days.length)];
+      let period = Math.floor(Math.random() * periodsPerDay);
+
+      if (subject.is_lab && period < periodsPerDay - 1 && timetable[day][period] === undefined && timetable[day][period + 1] === undefined) {
+        timetable[day][period] = subject.subject_code;
+        timetable[day][period + 1] = subject.subject_code;
+        hoursAssigned += 2;
+      } else if (!subject.is_lab && timetable[day][period] === undefined) {
+        timetable[day][period] = subject.subject_code;
+        hoursAssigned++;
+      }
     }
   });
-});
 
-// DELETE /api/teachers/:id
-app.delete('/api/teachers/:id', (req, res) => {
-  const { id } = req.params;
-
-  db.run("DELETE FROM teachers WHERE id = ?", [id], function (err) {
-    if (err) {
-      console.error("Error deleting teacher:", err.message);
-      return res.status(500).json({ error: "Failed to delete teacher." });
+  // Fill empty slots with null or "---"
+  for (const day of days) {
+    for (let i = 0; i < periodsPerDay; i++) {
+      if (timetable[day][i] === undefined) timetable[day][i] = "---";
     }
+  }
 
-    if (this.changes === 0) {
-      return res.status(404).json({ error: "Teacher not found." });
-    }
-
-    res.status(200).json({ message: "Teacher deleted successfully." });
-  });
-});
+  return timetable;
+};
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

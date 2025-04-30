@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import "./GenerateTT.css"; // Make sure you have styles for this component
-
 const GenerateTT = () => {
-  const [className, setClassName] = useState(""); // State to hold the class name
-  const [timetable, setTimetable] = useState(null); // State to hold the generated timetable
-  const [message, setMessage] = useState(""); // State to show messages (success, error, etc.)
+  const [className, setClassName] = useState("");
+  const [timetable, setTimetable] = useState(null);
+  const [message, setMessage] = useState("");
 
   const handleClassNameChange = (e) => {
-    setClassName(e.target.value); // Update class name as user types
+    setClassName(e.target.value);
   };
 
   const generateTimetable = async () => {
@@ -29,7 +28,7 @@ const GenerateTT = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setTimetable(data.timetable); // Set the generated timetable
+        setTimetable(data.timetable);
         setMessage("Timetable generated successfully!");
       } else {
         setMessage(data.error || "Error generating timetable.");
@@ -58,12 +57,12 @@ const GenerateTT = () => {
         Generate Timetable
       </button>
 
-      {message && <p>{message}</p>} {/* Show status message */}
+      {message && <p>{message}</p>}
 
       {timetable && (
         <div className="timetable-container">
           <h3>Generated Timetable:</h3>
-          <pre>{timetable}</pre> {/* You can customize how the timetable is displayed */}
+          <pre>{JSON.stringify(timetable, null, 2)}</pre>
         </div>
       )}
     </div>
