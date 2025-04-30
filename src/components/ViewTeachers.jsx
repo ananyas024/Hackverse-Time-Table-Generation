@@ -13,16 +13,14 @@ const ViewTeachers = () => {
     }
   };
 
-  // Delete teacher by ID
-  const deleteTeacher = async (teacherId) => {
+  const deleteTeacher = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/teachers/${teacherId}`, {
+      const response = await fetch(`http://localhost:5000/api/teachers/${id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        // Remove teacher from state after successful deletion
-        setTeachers(teachers.filter((teacher) => teacher.teacherId !== teacherId));
+        setTeachers(teachers.filter((teacher) => teacher.id !== id));
         alert("Teacher deleted successfully!");
       } else {
         alert("Failed to delete teacher.");
@@ -52,23 +50,22 @@ const ViewTeachers = () => {
               <th>Subject</th>
               <th>Credits</th>
               <th>Is Lab</th>
-              <th>Sections</th> {/* New column for sections */}
-              <th>Actions</th> {/* New column for actions */}
+              <th>Sections</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {teachers.map((teacher) => (
-              <tr key={teacher.teacherId}>
-                <td>{teacher.teacherId}</td>
-                <td>{teacher.teacherName}</td>
+              <tr key={teacher.id}>
+                <td>{teacher.id}</td>
+                <td>{teacher.name}</td>
                 <td>{teacher.subjectCode}</td>
                 <td>{teacher.subjectName}</td>
                 <td>{teacher.credits}</td>
                 <td>{teacher.isLab ? "Yes" : "No"}</td>
                 <td>{teacher.sections}</td>
                 <td>
-                  {/* Delete Button */}
-                  <button onClick={() => deleteTeacher(teacher.teacherId)} className="delete-btn">
+                  <button onClick={() => deleteTeacher(teacher.id)} className="delete-btn">
                     Delete
                   </button>
                 </td>

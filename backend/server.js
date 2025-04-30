@@ -7,7 +7,6 @@ import { fileURLToPath } from 'url';
 const app = express();
 const PORT = 5000;
 
-// Fix for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -25,86 +24,134 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Create teachers table with sections column
+// Create batches table
 db.run(`
-  CREATE TABLE IF NOT EXISTS teachers (
+  CREATE TABLE IF NOT EXISTS batches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    teacherId TEXT NOT NULL,
-    teacherName TEXT NOT NULL,
-    subjectCode TEXT NOT NULL,
-    subjectName TEXT NOT NULL,
-    credits INTEGER NOT NULL,
-    isLab INTEGER NOT NULL,
-    sections TEXT NOT NULL  -- New column for storing sections as a comma-separated string
+    year INTEGER NOT NULL,
+    section TEXT NOT NULL,
+    subjectCodes TEXT NOT NULL
   )
 `, (err) => {
-  if (err) console.error("Teacher table creation error:", err);
-  else console.log("Teachers table is ready.");
+  if (err) console.error("Batch table creation error:", err);
+  else console.log("Batches table is ready.");
 });
 
-// ------------------- TEACHER APIs -------------------
+// DROP and recreate the teachers table (FIX for sections column)
+db.serialize(() => {
+  db.run(`DROP TABLE IF EXISTS batches`, (err) => {
+    if (err) console.error("Error dropping batches table:", err);
+    else console.log("Old batches table dropped.");
+  });
 
-// Add Teacher
+  db.run(`
+    CREATE TABLE IF NOT EXISTS batches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      year INTEGER NOT NULL,
+      section TEXT NOT NULL,
+      subjectCodes TEXT NOT NULL
+    )
+  `, (err) => {
+    if (err) console.error("Batch table creation error:", err);
+    else console.log("Batches table is ready.");
+  });
+});
+
+// POST /api/batches
+app.post('/api/batches', (req, res) => {
+  const { year, sections } = req.body;
+
+  if (!year || !Array.isArray(sections) || sections.length === 0) {
+    return res.status(400).json({ error: 'Year and sections are required.' });
+  }
+
+  const insertStmt = db.prepare(`INSERT INTO batches (year, section, subjectCodes) VALUES (?, ?, ?)`);
+  let insertCount = 0;
+
+  sections.forEach(({ name, subjects }) => {
+    if (!name || !Array.isArray(subjects)) return;
+
+    const subjectCodes = subjects.join(',');
+
+    insertStmt.run([year, name, subjectCodes], function (err) {
+      if (err) {
+        console.error("Error inserting batch:", err.message);
+        return res.status(500).json({ error: "Database error while inserting batch" });
+      }
+
+      insertCount++;
+      if (insertCount === sections.length) {
+        insertStmt.finalize(() => {
+          return res.status(200).json({ message: "Batch(es) added successfully" });
+        });
+      }
+    });
+  });
+});
+
+// GET /api/batches
+app.get('/api/batches', (req, res) => {
+  db.all("SELECT * FROM batches", (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: "Database query failed" });
+    } else {
+      res.status(200).json(rows);
+    }
+  });
+});
+
+// POST /api/teachers
 app.post('/api/teachers', (req, res) => {
   const { teacherId, teacherName, subjectCode, subjectName, credits, isLab, sections } = req.body;
 
-  if (!teacherId || !teacherName || !subjectCode || !subjectName || credits === "" || !sections) {
-    return res.status(400).json({ error: "All fields are required" });
+  if (!teacherId || !teacherName || !subjectCode || !subjectName || credits == null || !sections) {
+    return res.status(400).json({ error: 'Missing required teacher fields.' });
   }
 
-  db.run(
-    `INSERT INTO teachers (teacherId, teacherName, subjectCode, subjectName, credits, isLab, sections)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [teacherId, teacherName, subjectCode, subjectName, credits, isLab ? 1 : 0, sections],
-    function (err) {
-      if (err) {
-        console.error("DB Insertion Error:", err.message);
-        return res.status(500).json({ error: 'Database error' });
-      }
-      res.status(200).json({ message: 'Teacher added', id: this.lastID });
+  const isLabInt = isLab ? 1 : 0;
+
+  const insertStmt = `
+    INSERT INTO teachers (id, name, subjectCode, subjectName, credits, isLab, sections)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.run(insertStmt, [teacherId, teacherName, subjectCode, subjectName, credits, isLabInt, sections], function(err) {
+    if (err) {
+      console.error("Failed to insert teacher:", err.message);
+      return res.status(500).json({ error: 'Failed to insert teacher.' });
     }
-  );
+    res.status(200).json({ message: 'Teacher added successfully.' });
+  });
 });
 
-// Get all Teachers
-app.get("/api/teachers", (req, res) => {
+app.get('/api/teachers', (req, res) => {
   db.all("SELECT * FROM teachers", (err, rows) => {
     if (err) {
-      res.status(500).json({ error: "Database query failed" });
+      return res.status(500).json({ error: "Database query failed" });
     } else {
-      res.json(rows);
+      res.status(200).json(rows);
     }
   });
 });
 
-// DELETE Teacher by teacherId
-app.delete('/api/teachers/:teacherId', (req, res) => {
-  const { teacherId } = req.params;
+// DELETE /api/teachers/:id
+app.delete('/api/teachers/:id', (req, res) => {
+  const { id } = req.params;
 
-  console.log(`Attempting to delete teacher with teacherId: ${teacherId}`);  // Debug log
-
-  db.run(`DELETE FROM teachers WHERE teacherId = ?`, [teacherId], function (err) {
+  db.run("DELETE FROM teachers WHERE id = ?", [id], function (err) {
     if (err) {
-      console.error("Error deleting teacher:", err);
-      return res.status(500).json({ error: "Error deleting teacher." });
+      console.error("Error deleting teacher:", err.message);
+      return res.status(500).json({ error: "Failed to delete teacher." });
     }
 
-    // Check if any rows were affected
     if (this.changes === 0) {
-      console.log(`No teacher found with teacherId: ${teacherId}`);  // Debug log
-      return res.status(404).json({ message: "Teacher not found." });
+      return res.status(404).json({ error: "Teacher not found." });
     }
 
-    console.log(`Teacher with teacherId: ${teacherId} deleted successfully.`);  // Debug log
-    res.status(200).json({ message: "Teacher deleted successfully!" });
+    res.status(200).json({ message: "Teacher deleted successfully." });
   });
 });
 
-// ------------------- BATCH APIs -------------------
-
-// Batch POST and GET APIs remain unchanged
-
-// ------------------- START SERVER -------------------
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
