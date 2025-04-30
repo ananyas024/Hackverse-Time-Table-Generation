@@ -15,7 +15,6 @@ const GenerateTT = () => {
       return;
     }
 
-    // Make API call to backend to generate the timetable
     try {
       const response = await fetch("http://localhost:5000/api/generate-timetable", {
         method: "POST",
