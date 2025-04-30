@@ -1,0 +1,84 @@
+/* Ensure the body and html take up full height */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Dashboard container */
+.dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  background: #222; /* Optional: dark background for the whole dashboard */
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+  height: 100%; /* Full height of the window */
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 40px; /* Adjusted to give space from the top */
+}
+
+.sidebar ul li {
+  margin: 20px 0;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 10px;
+  transition: background-color 0.3s;
+}
+
+.sidebar ul li:hover {
+  background-color: #4f46e5;
+}
+
+/* Content area */
+.content {
+  flex-grow: 1;
+  padding: 40px 32px;
+  background: #222; /* Match sidebar or use your preferred color */
+  min-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Dashboard container for individual sections */
+.dashboard-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 32px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+}
+
+h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Make sure sidebar links are displayed clearly */
+ul li {
+  font-size: 16px;
+  cursor: pointer;
+}

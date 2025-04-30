@@ -1,0 +1,229 @@
+/* Universal setup */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body, html {
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.landing-page {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.glass-card {
+    width: 90%;
+    max-width: 1100px;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    display: flex;
+    overflow: hidden;
+    animation: fadeIn 1s ease-out;
+}
+.logo-corner {
+    position: absolute;
+    top: 35px;
+    left: 770px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    z-index: 2;
+}
+
+.corner-logo {
+    height: 95px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.2));
+    transition: transform 0.3s ease;
+}
+
+.corner-logo:hover {
+    transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Left panel */
+.login-left {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: white;
+    position: relative;
+}
+
+.logo-group {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 16px;
+}
+
+.login-logo {
+    height: 60px;
+}
+
+.second-logo {
+    height: 50px;
+}
+
+.welcome-message h1 {
+    font-size: 32px;
+    font-weight: 400;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+.welcome-message h2 {
+    font-size: 42px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Right panel */
+.login-right {
+    flex: 1;
+    background: white;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    animation: slideIn 0.8s ease forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.login-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #004aad;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Input group with floating labels */
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+    background: #e9f0ff;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+}
+
+.input-group .icon {
+    color: #004aad;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.input-group input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    width: 100%;
+    padding-top: 10px;
+    color: black;
+}
+
+.input-group label {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #666;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label,
+.input-group input.filled + label {
+    top: 6px;
+    left: 40px;
+    font-size: 12px;
+    color: #004aad;
+}
+
+/* Checkbox */
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Button */
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: #004aad;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.login-btn:hover {
+    background: #002f6c;
+}
+
+/* Error message */
+.error-message {
+    color: red;
+    font-size: 13px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .glass-card {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .login-left {
+        display: none;
+    }
+
+    .login-right {
+        width: 100%;
+        padding: 40px 20px;
+    }
+}

@@ -1,0 +1,181 @@
+{
+    "subjects": [
+        {
+            "code": "AM522I1A",
+            "name": "c",
+            "credits": 4,
+            "teacher_id": "PLK",
+            "is_lab": false,
+            "sections": [
+                "5A"
+            ]
+        },
+        {
+            "code": "AM522I1A_LAB",
+            "name": "DBMS Lab",
+            "credits": 2,
+            "teacher_id": "SJ",
+            "is_lab": true,
+            "sections": [
+                "5A",
+                "5C"
+            ]
+        },
+        {
+            "code": "AM522I2A",
+            "name": "Machine Learning",
+            "credits": 4,
+            "teacher_id": "SNR",
+            "is_lab": false,
+            "sections": [
+                "5B"
+            ]
+        },
+        {
+            "code": "CS522T3C",
+            "name": "Automata Theory",
+            "credits": 4,
+            "teacher_id": "KG",
+            "is_lab": false,
+            "sections": [
+                "5B"
+            ]
+        },
+        {
+            "code": "AM522T4A",
+            "name": "Social Network Analysis",
+            "credits": 4,
+            "teacher_id": "RA",
+            "is_lab": false,
+            "sections": [
+                "5B"
+            ]
+        },
+        {
+            "code": "AM522L5A",
+            "name": "Machine Learning Lab",
+            "credits": 2,
+            "teacher_id": "SNR",
+            "is_lab": true,
+            "sections": [
+                "5B"
+            ]
+        },
+        {
+            "code": "AM52216AC",
+            "name": "Industrial IoT",
+            "credits": 3,
+            "teacher_id": "SN",
+            "is_lab": false,
+            "sections": [
+                "5B"
+            ]
+        },
+        {
+            "code": "AM522P7A",
+            "name": "Mini-Project Work",
+            "credits": 2,
+            "teacher_id": "DSP",
+            "is_lab": false,
+            "sections": [
+                "5B"
+            ]
+        },
+        {
+            "code": "CS622T1C",
+            "name": "Software Engineering",
+            "credits": 4,
+            "teacher_id": "KG",
+            "is_lab": false,
+            "sections": [
+                "6B"
+            ]
+        },
+        {
+            "code": "AM622I2A",
+            "name": "Natural Language Processing",
+            "credits": 4,
+            "teacher_id": "SJ",
+            "is_lab": false,
+            "sections": [
+                "6B"
+            ]
+        },
+        {
+            "code": "AM622T3A",
+            "name": "Image Processing",
+            "credits": 4,
+            "teacher_id": "SK",
+            "is_lab": false,
+            "sections": [
+                "6A",
+                "6B"
+            ]
+        },
+        {
+            "code": "AM62214AC",
+            "name": "Cloud Computing",
+            "credits": 4,
+            "teacher_id": "GK",
+            "is_lab": false,
+            "sections": [
+                "6A",
+                "6B"
+            ]
+        },
+        {
+            "code": "AM62214AD",
+            "name": "Data Science",
+            "credits": 4,
+            "teacher_id": "VK",
+            "is_lab": false,
+            "sections": [
+                "6A",
+                "6B"
+            ]
+        },
+        {
+            "code": "AM622L7A",
+            "name": "Image Processing Lab",
+            "credits": 2,
+            "teacher_id": "SK",
+            "is_lab": true,
+            "sections": [
+                "6A",
+                "6B"
+            ]
+        },
+        {
+            "code": "AM622P6A",
+            "name": "Project Work",
+            "credits": 4,
+            "teacher_id": "DSP",
+            "is_lab": false,
+            "sections": [
+                "6A",
+                "6B"
+            ]
+        },
+        {
+            "code": "AM522I1A",
+            "name": "Database Management System",
+            "credits": 4,
+            "teacher_id": "SU",
+            "is_lab": false,
+            "sections": [
+                "5B"
+            ]
+        },
+        {
+            "code": "AM62298AA",
+            "name": "3D Animation",
+            "credits": 2,
+            "teacher_id": "SNR",
+            "is_lab": false,
+            "sections": [
+                "6A",
+                "6B"
+            ]
+        }
+    ]
+}

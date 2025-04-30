@@ -1,0 +1,30 @@
+{
+    "batches": [
+        {
+            "year": 2,
+            "sections": [
+                {
+                    "name": "4A",
+                    "subjects": ["AM421F1A", "CS421T2C", "AM421L3A"]
+                },
+                {
+                    "name": "4B",
+                    "subjects": ["AM421F1A", "CS421T2C", "CS421L4C"]
+                }
+            ]
+        },
+        {
+            "year": 3,
+            "sections": [
+                {
+                    "name": "6A",
+                    "subjects": ["AM622T3A", "AM62214AC", "AM62214AD", "AM622L7A", "AM622P6A", "AM62298AA"]
+                },
+                {
+                    "name": "6B",
+                    "subjects": ["CS622T1C", "AM622I2A", "AM622T3A", "AM62214AC", "AM62214AD", "AM622L7A", "AM622P6A", "AM62298AA"]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,80 @@
+{
+    "teachers": [
+        {
+            "id": "PLK",
+            "name": "Dr. Pushpalatha K"
+        },
+        {
+            "id": "KG",
+            "name": "Mrs. Kavyashree G"
+        },
+        {
+            "id": "SNR",
+            "name": "Mr. Sharathchandra N R"
+        },
+        {
+            "id": "SJ",
+            "name": "Ms. Sandra Jeyes"
+        },
+        {
+            "id": "SK",
+            "name": "Ms. Shreekshitha"
+        },
+        {
+            "id": "RS",
+            "name": "Mrs. Rajeshwari Shettigar"
+        },
+        {
+            "id": "GK",
+            "name": "Mr. Ganaraj K"
+        },
+        {
+            "id": "GH",
+            "name": "Dr. Gurusiddayya Hiremath"
+        },
+        {
+            "id": "DL",
+            "name": "Mrs. Deepthi L"
+        },
+        {
+            "id": "DSP",
+            "name": "Dr. Dudella Sai Prashanth"
+        },
+        {
+            "id": "SN",
+            "name": "Ms. Shwetha Naik"
+        },
+        {
+            "id": "DJS",
+            "name": "Ms. Deeksha J S"
+        },
+        {
+            "id": "SC",
+            "name": "Mrs. Suchetha"
+        },
+        {
+            "id": "GS",
+            "name": "Dr. Gurusiddaayya Hiremath"
+        },
+        {
+            "id": "VK",
+            "name": "Dr. Vikram"
+        },
+        {
+            "id": "SU",
+            "name": "Sushma"
+        },
+        {
+            "id": "NI",
+            "name": "Ms. Naina M"
+        },
+        {
+            "id": "KG",
+            "name": "Mrs. Kavyashree G"
+        },
+        {
+            "id": "DJS",
+            "name": "Ms. Deeksha J S"
+        }
+    ]
+}
